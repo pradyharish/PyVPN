@@ -21,13 +21,13 @@ This guide will help you schedule your Python script to run automatically using 
 1. Select **"Start a program"** and click **Next**.
 2. In the **Program/script** field, enter the path to your Python executable. This is usually something like:
 
-C:\Python39\python.exe
+C:\Python39\python.exe [skip this step if you use my bat script instead of py]
 
 (Adjust the path based on your Python installation.)
 
 3. In the **Add arguments (optional)** field, enter the path to your script:
 
-“C:\path\to\your\AutomatedConnectionToVPN.py”
+“C:\path\to\your\AutoConnectToVPN.py”
 
 Make sure to include the quotes if there are spaces in the path.
 
