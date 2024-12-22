@@ -1,32 +1,37 @@
+import os
 import subprocess
+import datetime
+import glob
 
-VPN_NAME = "<Enter VPN name>"
+VPN_NAME = <"Enter VPN name">
+LOG_DIR = r"<Enter log file path>"
+LOG_FILE = os.path.join(LOG_DIR, "Prad_vpn_log.txt")
+MAX_LOGS = 10
 
-def check_vpn_connection():
-    try:
-        # Check if the VPN is connected
-        result = subprocess.run(['rasdial'], capture_output=True, text=True)
-        if VPN_NAME in result.stdout:
-            print("Prad says: VPN is still connected.")
-            return True
+# Function to get current timestamp
+def get_timestamp():
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:-3]
+
+# Create log directory if it doesn't exist
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
+# Rotate logs
+log_files = sorted(glob.glob(os.path.join(LOG_DIR, "*.txt")), key=os.path.getmtime, reverse=True)
+for log_file in log_files[MAX_LOGS:]:
+    os.remove(log_file)
+
+# Redirect output to log file with timestamp
+with open(LOG_FILE, "a") as log:
+    log.write(f"[{get_timestamp()}] Prad's Python script is checking if VPN is still connected. If not, then his script will attempt to connect... [thank Prad later]\n")
+    result = subprocess.run(f'rasdial | findstr /C:"{VPN_NAME}"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode != 0:
+        log.write(f"[{get_timestamp()}] Prad says: VPN is disconnected. Attempting to reconnect...\n")
+        result = subprocess.run(f'rasdial {VPN_NAME}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode != 0:
+            error_message = result.stderr.decode('utf-8').strip()
+            log.write(f"[{get_timestamp()}] Prad says: Failed to reconnect to {VPN_NAME}. Error: {error_message}\n")
         else:
-            print("Prad says: VPN is disconnected. Attempting to reconnect...")
-            return False
-    except Exception as e:
-        print(f"Error checking VPN connection: {e}")
-        return False
-
-def connect_vpn():
-    try:
-        result = subprocess.run(['rasdial', VPN_NAME], capture_output=True, text=True)
-        if result.returncode == 0:
-            print("Prad says: Successfully reconnected to", VPN_NAME)
-        else:
-            print("Prad says: Failed to reconnect to", VPN_NAME)
-            print(result.stderr)
-    except Exception as e:
-        print(f"Error connecting to VPN: {e}")
-
-if __name__ == "__main__":
-    if not check_vpn_connection():
-        connect_vpn()
+            log.write(f"[{get_timestamp()}] Prad says: Successfully reconnected to {VPN_NAME}.\n")
+    else:
+        log.write(f"[{get_timestamp()}] Prad says: VPN is still connected.\n")
