@@ -1,9 +1,9 @@
 # PyVPN
 Automates the connection to VPN. Use either the Python or the Batch scripts I wrote here to connect to VPN. Wrote it since VPN gets disconnected after a while by design. I run it as on Task Scheduler (Windows Scheduler) so it doesn't need to be run every time VPN is disconnected.
 
-# Setting Up Python Script in Windows Task Scheduler
+# Setting Up Python / BAT Script in Windows Task Scheduler
 
-This guide will help you schedule your Python script to run automatically using Windows Task Scheduler.
+This guide will help you schedule the script to run automatically using Windows Task Scheduler.
 
 ## Step 1: Open Task Scheduler
 1. Press `Windows + R` to open the Run dialog.
