@@ -22,16 +22,38 @@ for log_file in log_files[MAX_LOGS:]:
     os.remove(log_file)
 
 # Redirect output to log file with timestamp
-with open(LOG_FILE, "a") as log:
+with open(LOG_FILE, "a", encoding='utf-8') as log:
     log.write(f"[{get_timestamp()}] Prad's Python script is checking if VPN is still connected. If not, then his script will attempt to connect... [thank Prad later]\n")
-    result = subprocess.run(f'rasdial | findstr /C:"{VPN_NAME}"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    # Check if VPN is connected
+    result = subprocess.run(f'rasdial | findstr /C:"{VPN_NAME}"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
+    
     if result.returncode != 0:
         log.write(f"[{get_timestamp()}] Prad says: VPN is disconnected. Attempting to reconnect...\n")
-        result = subprocess.run(f'rasdial {VPN_NAME}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        # Attempt to reconnect
+        result = subprocess.run(f'rasdial {VPN_NAME}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
+        
+        # Log both stdout and stderr for better debugging
+        stdout_output = result.stdout.strip() if result.stdout else ""
+        stderr_output = result.stderr.strip() if result.stderr else ""
+        
+        log.write(f"[{get_timestamp()}] Prad says: rasdial command return code: {result.returncode}\n")
+        
+        if stdout_output:
+            log.write(f"[{get_timestamp()}] Prad says: Command output: {stdout_output}\n")
+        
+        if stderr_output:
+            log.write(f"[{get_timestamp()}] Prad says: Command error: {stderr_output}\n")
+        
         if result.returncode != 0:
-            error_message = result.stderr.decode('utf-8').strip()
+            # rasdial often outputs error messages to stdout, not stderr
+            error_message = stderr_output or stdout_output or "Unknown error"
             log.write(f"[{get_timestamp()}] Prad says: Failed to reconnect to {VPN_NAME}. Error: {error_message}\n")
         else:
             log.write(f"[{get_timestamp()}] Prad says: Successfully reconnected to {VPN_NAME}.\n")
     else:
         log.write(f"[{get_timestamp()}] Prad says: VPN is still connected.\n")
+    
+    # Flush the log to ensure it's written immediately
+    log.flush()
